@@ -98,7 +98,7 @@ def add_setting_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '--search', type=str, default='ucbm',
         choices=('policy', 'beta', 'ucbm', 'ucbr', 'ucb1', 'puct', 'zero'),
-        help='Algorithm of next move selections (beta or ucb1) (default: ucb1).')
+        help='Algorithm of next move selections (default: ucbm).')
     parser.add_argument(
         '--safe', type=float, default=0.0,
         help='Safe parameter at move decisions (most aggresive at 0.0).')

@@ -310,7 +310,7 @@ class Setting(object):
         self.normalize = True  # normalize values
         self.collision = 0.0  # penalty of potetial collision moves (ignore potential collisions at 0.0)
         self.eating = 0.0  # value of eating a food (ignore foods at 0.0)
-        self.search = 'ucb1'  # algrithm of next move selections ('beta' or 'ucb1')
+        self.search = 'ucbm'  # algrithm of next move selections
         self.safe = 0.0  # safe parameter at move decisions.
         self.strict = False  # evaluate a value of the root node with other edge and leaf nodes.
         self.lookahead = 4  # depth of look-ahead by depth-first search (not inference by NN or MCTS).
