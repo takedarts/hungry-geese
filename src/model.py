@@ -211,4 +211,4 @@ class DummyModel(nn.Module):
         super().__init__()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return torch.ones([x.shape[0], 6], dtype=torch.float)
+        return torch.rand([x.shape[0], 6], dtype=torch.float)
