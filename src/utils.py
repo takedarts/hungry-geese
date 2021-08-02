@@ -96,8 +96,8 @@ def add_setting_arguments(parser: argparse.ArgumentParser) -> None:
         '--eating', type=float, default=0.0,
         help='Value of eating a food (ignore foods at 0.0).')
     parser.add_argument(
-        '--search', type=str, default='ucb1',
-        choices=('policy', 'beta', 'ucb1', 'ucbr', 'ucbt', 'ucbs', 'puct', 'zero'),
+        '--search', type=str, default='ucbm',
+        choices=('policy', 'beta', 'ucbm', 'ucbr', 'ucb1', 'puct', 'zero'),
         help='Algorithm of next move selections (beta or ucb1) (default: ucb1).')
     parser.add_argument(
         '--safe', type=float, default=0.0,

@@ -258,40 +258,28 @@ def select_actions_by_beta(moves: np.ndarray, safe: float, player: int) -> np.nd
     return np.argmax(values * moves[:, :, MOVE_ENABLED], axis=1)
 
 
-def select_actions_by_ucb1(moves: np.ndarray, safe: float, player: int) -> np.ndarray:
+def select_actions_by_ucbm(moves: np.ndarray, safe: float, player: int) -> np.ndarray:
+    '''Modified UCB (not UCB1)'''
     values = get_move_values(moves, safe, player) / (moves[:, :, MOVE_VISIT] + 1e-6)
-    totals = (moves[:, :, MOVE_VISIT].sum(axis=1) + 1)[:, None]
-    visits = np.sqrt(2 * np.log(totals) / (moves[:, :, MOVE_VISIT] + 1e-6))
+    visits = np.sqrt(1.0 / (moves[:, :, MOVE_VISIT] + 1e-6))
 
     return np.argmax(values * visits * moves[:, :, MOVE_ENABLED], axis=1)
 
 
 def select_actions_by_ucbr(moves: np.ndarray, safe: float, player: int) -> np.ndarray:
+    '''Randamized-Modified UCB (not UCB1)'''
     values = get_move_values(moves, safe, player) / (moves[:, :, MOVE_VISIT] + 1e-6)
-    totals = (moves[:, :, MOVE_VISIT].sum(axis=1) + 1)[:, None] + np.random.rand(4, 1)
+    visits = np.sqrt((1.0 + np.random.rand(4, 1)) / (moves[:, :, MOVE_VISIT] + 1e-6))
+
+    return np.argmax(values * visits * moves[:, :, MOVE_ENABLED], axis=1)
+
+
+def select_actions_by_ucb1(moves: np.ndarray, safe: float, player: int) -> np.ndarray:
+    values = get_move_values(moves, safe, player) / (moves[:, :, MOVE_VISIT] + 1e-6)
+    totals = (moves[:, :, MOVE_VISIT].sum(axis=1) + 1)[:, None]
     visits = np.sqrt(2 * np.log(totals) / (moves[:, :, MOVE_VISIT] + 1e-6))
 
-    return np.argmax(values * visits * moves[:, :, MOVE_ENABLED], axis=1)
-
-
-def select_actions_by_ucbt(moves: np.ndarray, safe: float, player: int) -> np.ndarray:
-    '''UCB1-Tuned'''
-    values1 = get_move_values(moves, safe, player) / (moves[:, :, MOVE_VISIT] + 1e-6)
-    values2 = get_move_values2(moves, safe, player) / (moves[:, :, MOVE_VISIT] + 1e-6)
-    logn = np.log(moves[:, :, MOVE_VISIT].sum(axis=1) + 1)[:, None]
-    variance = (values2 - values1 ** 2) + np.sqrt(2 * logn / (moves[:, :, MOVE_VISIT] + 1e-6))
-    visits = np.sqrt((logn / (moves[:, :, MOVE_VISIT] + 1e-6)) * np.minimum(variance, 0.25))
-
-    return np.argmax(values1 * visits * moves[:, :, MOVE_ENABLED], axis=1)
-
-
-def select_actions_by_ucbs(moves: np.ndarray, safe: float, player: int) -> np.ndarray:
-    '''UCB1-Squared'''
-    values = get_move_values(moves, safe, player) / (moves[:, :, MOVE_VISIT] + 1e-6)
-    totals = moves[:, :, MOVE_VISIT].sum(axis=1, keepdims=True)
-    visits = np.sqrt(totals) / (moves[:, :, MOVE_VISIT] + 1e-6)
-
-    return np.argmax(values * visits * moves[:, :, MOVE_ENABLED], axis=1)
+    return np.argmax((values + visits) * moves[:, :, MOVE_ENABLED], axis=1)
 
 
 def select_actions_by_puct(moves: np.ndarray, safe: float, player: int) -> np.ndarray:
@@ -482,14 +470,12 @@ class World(object):
             actions = select_action_by_policy(self.moves)
         elif self.setting.search == 'beta':
             actions = select_actions_by_beta(self.moves, self.setting.safe, player)
-        elif self.setting.search == 'ucb1':
-            actions = select_actions_by_ucb1(self.moves, self.setting.safe, player)
+        elif self.setting.search == 'ucbm':
+            actions = select_actions_by_ucbm(self.moves, self.setting.safe, player)
         elif self.setting.search == 'ucbr':
             actions = select_actions_by_ucbr(self.moves, self.setting.safe, player)
-        elif self.setting.search == 'ucbt':
-            actions = select_actions_by_ucbt(self.moves, self.setting.safe, player)
-        elif self.setting.search == 'ucbs':
-            actions = select_actions_by_ucbs(self.moves, self.setting.safe, player)
+        elif self.setting.search == 'ucb1':
+            actions = select_actions_by_ucb1(self.moves, self.setting.safe, player)
         elif self.setting.search == 'puct':
             actions = select_actions_by_puct(self.moves, self.setting.safe, player)
         elif self.setting.search == 'zero':

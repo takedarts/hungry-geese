@@ -26,7 +26,7 @@ parser.add_argument('--threshold', type=int, default=125, help='Number of requir
 parser.add_argument('--workers', type=int, default=1, help='Number of workers.')
 add_setting_arguments(parser)
 parser.set_defaults(timelimit='100')
-parser.set_defaults(search='ucb1')
+parser.set_defaults(search='ucbm')
 parser.set_defaults(lookahead=3)
 parser.add_argument('--seed', type=int, default=None, help='Random seed.')
 parser.add_argument('--debug', action='store_true', default=False, help='Debug mode.')
