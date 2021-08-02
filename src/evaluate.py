@@ -200,7 +200,7 @@ def main() -> None:
     # copy the best model
     model_path = data_path / f'{best_numbers[0]:05d}_model.pkl'
     LOGGER.info('best model: %s', model_path)
-    shutil.copy(model_path, data_path / '99998_model.pkl')
+    shutil.copy(model_path, data_path / '99999_model.pkl')
 
 
 if __name__ == '__main__':
