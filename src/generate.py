@@ -52,7 +52,7 @@ def make_agent(
 
     # model
     if model_path.is_file():
-        model = torch.jit.load(model_path)
+        model = torch.jit.load(str(model_path))
     else:
         model = DummyModel()
 
