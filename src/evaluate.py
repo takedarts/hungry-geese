@@ -194,10 +194,14 @@ def main() -> None:
 
     # files
     data_path = pathlib.Path(__file__).parent.parent / 'data'
+    best_path = data_path / 'best_model.txt'
 
-    with open(data_path / 'best_model.txt', 'r') as reader:
-        best_numbers = [int(n) for n in reader.readline().split(',')]
-        newest_number = int(reader.readline())
+    if best_path.is_file():
+        with open(best_path, 'r') as reader:
+            best_numbers = [int(n) for n in reader.readline().split(',')]
+            newest_number = int(reader.readline())
+    else:
+        best_numbers = []
 
     model_numbers = best_numbers[::-1]
 
