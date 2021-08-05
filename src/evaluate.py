@@ -202,6 +202,7 @@ def main() -> None:
             newest_number = int(reader.readline())
     else:
         best_numbers = []
+        newest_number = -1
 
     model_numbers = best_numbers[::-1]
 
