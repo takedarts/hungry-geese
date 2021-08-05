@@ -1,3 +1,9 @@
+'''This script trains a CNN model by using the newest game records.
+This script saves a model as 2 files:
+  weights file (*.pth): the model weights and the training logs are saved.
+  traced file (*.pkl): the model weights and the model structure are saved.
+The traced model file is created by using torch.jit.trace and torch.jit.save.
+'''
 import argparse
 import bisect
 import logging
@@ -37,6 +43,10 @@ DUMMY_MODEL = DummyModel()
 
 
 class Datum(object):
+    '''Create input features from a game record.
+    This class manages a game record, and creates input features of the specified steps.
+    '''
+
     def __init__(
         self,
         config: Dict[str, Any],
@@ -105,6 +115,8 @@ class Datum(object):
 
 
 class Dataset(torch.utils.data.Dataset):
+    '''Dataset class for training.'''
+
     def __init__(self, data: List[Datum]) -> None:
         self.data = data
         self.offset = [0]
@@ -125,6 +137,7 @@ class Dataset(torch.utils.data.Dataset):
 
 
 def repeat_loader(data_loader: torch.utils.data.DataLoader) -> Iterator[Any]:
+    '''Wrapper for making repeatable data loader.'''
     for loader in itertools.repeat(data_loader):
         for v in loader:
             yield v
@@ -139,14 +152,14 @@ def main() -> None:
     model_path = data_path / f'{record_numbers[-1]:05d}_model.pth'
     trace_path = data_path / f'{record_numbers[-1]:05d}_model.pkl'
 
-    # model
+    # make model
     model = NormalModel()
 
     LOGGER.info(
         'start training: %s (stem=%d, head=%d, blocks=%d)',
         trace_path, STEM_TYPE, HEAD_TYPE, len(model.blocks))
 
-    # load data
+    # make data loader
     data = []
 
     for num in record_numbers:
@@ -159,7 +172,7 @@ def main() -> None:
         Dataset(data), batch_size=args.batch,
         shuffle=True, drop_last=True, num_workers=args.workers))
 
-    # optimizer
+    # make optimizer
     optimizer = optim.SGD(
         model.parameters(), lr=args.lr, momentum=0.9, weight_decay=args.decay)
     scheduler = optim.lr_scheduler.MultiStepLR(

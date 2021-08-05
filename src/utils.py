@@ -50,6 +50,9 @@ def get_newest_model_numbers(
     size=1,
     max_number=99999,
 ) -> List[int]:
+    '''Search the newest model numbers.
+    The model number more than `max_number` is ignored.
+    '''
     regex = re.compile(r'(\d+)_model.pkl')
     numbers = []
 
@@ -66,6 +69,9 @@ def get_newest_record_numbers(
     size=1,
     max_number=99999,
 ) -> List[int]:
+    '''Search the newest record numbers.
+    The record number more than `max_number` is ignored.
+    '''
     regex = re.compile(r'(\d+)_record.pkl')
     numbers = []
     for name in os.listdir(path):
@@ -129,6 +135,7 @@ def add_setting_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def make_setting(args: argparse.Namespace, **kwargs) -> Setting:
+    '''Make an agent setting from command parameters.'''
     return Setting(
         timelimit=args.timelimit,
         depthlimit=args.depthlimit,

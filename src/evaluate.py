@@ -1,3 +1,7 @@
+'''This script evaluates models through games.
+Each game is performed with 4 different models which are the newest or the strongest.
+The most win model is saved as the strongest model (data/99999_model.pkl).
+'''
 import argparse
 import logging
 import multiprocessing.managers
@@ -22,7 +26,7 @@ parser = argparse.ArgumentParser(
     description='Match models.',
     formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('--iteration', type=int, default=400, help='Number of iterations.')
-parser.add_argument('--threshold', type=int, default=125, help='Number of required wins.')
+parser.add_argument('--threshold', type=int, default=0, help='Number of required wins.')
 parser.add_argument('--workers', type=int, default=1, help='Number of workers.')
 add_setting_arguments(parser)
 parser.set_defaults(timelimit='100')
@@ -33,6 +37,8 @@ parser.add_argument('--debug', action='store_true', default=False, help='Debug m
 
 
 LOGGER = logging.getLogger(__name__)
+
+# workers are terminated TIMEOUT seconds after the main process stops.
 TIMEOUT = 5.0
 
 
@@ -42,13 +48,26 @@ def make_agent(
     env: Environment,
     args: argparse.Namespace,
 ) -> Callable:
+    '''Create an agent.
+    Args:
+        model_path: file path of a cnn model.
+        timestamp: timestamp object which will update by the main process.
+        env: game environment object.
+        args: command parameters.
+    Returns:
+        created agent.
+    '''
+    # make agent
+    agent = Agent(model, Configuration(env.configuration), make_setting(args))
+
+    # set timeout checker
     def check_timeout(agent: Agent, obs: Observation, action: Action) -> None:
         if time.time() - timestamp.value > TIMEOUT:
             raise Exception('timeout')
 
-    agent = Agent(model, Configuration(env.configuration), make_setting(args))
     agent.postproc = check_timeout
 
+    # return agent
     def run_agent(obs: Observation, _: Configuration):
         return agent(Observation(obs)).name
 
@@ -61,8 +80,19 @@ def match(
     models: List[str],
     args: argparse.Namespace,
 ) -> List[int]:
-    # make environment
+    '''Perform a game and return the results.
+    Args:
+        proc_number: process number.
+        timestamp: timestamp object which will update by the main process.
+        model_path: file path of a cnn model.
+        args: command parameters.
+    Returns:
+        list of rewards
+    '''
+    # set random seed for this match
     random_seed(args.seed + proc_number)
+
+    # make environment
     env = make(
         "hungry_geese",
         configuration={'actTimeout': 20, 'runTimeout': 50000},
@@ -96,6 +126,14 @@ def run_match(
     models: List[str],
     args: argparse.Namespace,
 ) -> None:
+    '''Perform a game and send the results via the specified queue.
+    Args:
+        proc_number: process number.
+        receiver: queue for sending the game records and the game results.
+        timestamp: timestamp object which will update by the main process.
+        model_path: file path of a cnn model.
+        args: command parameters.
+    '''
     try:
         receiver.put(match(proc_number, timestamp, models, args))
     except Exception as e:
@@ -108,6 +146,16 @@ def wait_results(
     reveiver: queue.Queue,
     timestamp: multiprocessing.managers.ValueProxy,
 ) -> Tuple[np.ndarray, np.ndarray]:
+    '''Wait for receiving game results.
+    The game results are received from workers via queue.
+    This returns the collection of the received results.
+    Args:
+        games: number of games.
+        receiver: queue for receiving game results.
+        timestamp: timestamp for notifying main process available.
+    Returns:
+        game results, game rewards.
+    '''
     results = np.zeros([4, 4], dtype=np.int32)
     rewards = np.zeros([4], dtype=np.int32)
     points = np.array([3, 2, 1, 0], dtype=np.int32)

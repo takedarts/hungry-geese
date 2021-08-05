@@ -1,3 +1,7 @@
+'''This script generates game records.
+The games are performed with the newest model or the strongest model.
+The generated game records are stored in the data directory.
+'''
 import argparse
 import json
 import logging
@@ -17,8 +21,7 @@ from agent import Agent
 from model import DummyModel
 from record import convert_state2result, convert_steps2records
 from utils import (add_setting_arguments, get_newest_model_numbers,
-                   get_newest_record_numbers, make_setting, random_seed,
-                   setup_logging)
+                   get_newest_record_numbers, make_setting, random_seed, setup_logging)
 
 parser = argparse.ArgumentParser(
     description='Generate training data.',
@@ -37,6 +40,8 @@ parser.add_argument('--gpu', type=lambda x: list(map(int, x.split(','))), defaul
 parser.add_argument('--debug', action='store_true', default=False, help='Debug mode.')
 
 LOGGER = logging.getLogger(__name__)
+
+# workers are terminated TIMEOUT seconds after the main process stops.
 TIMEOUT = 5.0
 
 
@@ -46,10 +51,15 @@ def make_agent(
     env: Environment,
     args: argparse.Namespace,
 ) -> Callable:
-    def check_timeout(agent: Agent, obs: Observation, action: Action) -> None:
-        if time.time() - timestamp.value > TIMEOUT:
-            raise Exception('timeout')
-
+    '''Create an agent.
+    Args:
+        model_path: file path of a cnn model.
+        timestamp: timestamp object which will update by the main process.
+        env: game environment object.
+        args: command parameters.
+    Returns:
+        created agent.
+    '''
     # model
     if model_path.is_file():
         model = torch.jit.load(str(model_path))
@@ -58,8 +68,15 @@ def make_agent(
 
     # make agent
     agent = Agent(model, Configuration(env.configuration), make_setting(args))
+
+    # set timeout checker
+    def check_timeout(agent: Agent, obs: Observation, action: Action) -> None:
+        if time.time() - timestamp.value > TIMEOUT:
+            raise Exception('timeout')
+
     agent.postproc = check_timeout
 
+    # return agent
     def run_agent(obs: Observation, _: Configuration):
         return agent(Observation(obs)).name
 
@@ -72,9 +89,19 @@ def match(
     model_path: pathlib.Path,
     args: argparse.Namespace
 ) -> Tuple[Dict[str, Any], List[List[List[int]]], List[int]]:
-    random_seed(int(time.time()) + proc_number)
-
+    '''Perform a game and return the records and the results.
+    Args:
+        proc_number: process number.
+        timestamp: timestamp object which will update by the main process.
+        model_path: file path of a cnn model.
+        args: command parameters.
+    Returns:
+        game configuration, list of game records, list of game results.
+    '''
     LOGGER.info('start simulation [%d]: %s', proc_number, model_path)
+
+    # set a random seed of this match
+    random_seed(int(time.time()) + (proc_number * 1024))
 
     # make environment
     config = {'actTimeout': 20, 'runTimeout': 50000}
@@ -112,6 +139,14 @@ def run_match(
     model_path: pathlib.Path,
     args: argparse.Namespace,
 ) -> None:
+    '''Perform a game and send the records and the results via the specified queue.
+    Args:
+        proc_number: process number.
+        receiver: queue for sending the game records and the game results.
+        timestamp: timestamp object which will update by the main process.
+        model_path: file path of a cnn model.
+        args: command parameters.
+    '''
     try:
         receiver.put(match(proc_number, timestamp, model_path, args))
     except Exception as e:
@@ -124,6 +159,16 @@ def wait_results(
     reveiver: queue.Queue,
     timestamp: multiprocessing.managers.ValueProxy,
 ) -> List[Tuple[Dict[str, Any], List[List[List[int]]], List[int]]]:
+    '''Wait for receiving game records and game results.
+    The game records and game results are received from workers via queue.
+    This returns the collection of the received records and results.
+    Args:
+        games: number of games.
+        receiver: queue for receiving game records and results.
+        timestamp: timestamp for notifying main process available.
+    Returns:
+        game configuration, game records, game results.
+    '''
     records: List[Tuple[Dict[str, Any], List[List[List[int]]], List[int]]] = []
 
     while len(records) < games:
@@ -143,7 +188,7 @@ def main() -> None:
     args = parser.parse_args()
     setup_logging(args.debug)
 
-    # files
+    # check file paths
     data_path = pathlib.Path(__file__).parent.parent / 'data'
     record_numbers = get_newest_record_numbers(data_path)
     model_numbers = get_newest_model_numbers(data_path)

@@ -1,3 +1,5 @@
+'''This script shows game records.
+'''
 import argparse
 import pickle
 from typing import Any, Dict, List
@@ -11,8 +13,9 @@ from utils import setup_logging
 
 
 def convert_steps2records(steps: List[Struct]) -> List[List[List[int]]]:
-    '''Structure of a record.
-    [
+    '''Convert step objects of kaggle environment to game record objects.
+    Structure of a record:
+    List of [
         segment of player 1,
         segment of player 2,
         segment of player 3,
@@ -47,6 +50,8 @@ def convert_steps2records(steps: List[Struct]) -> List[List[List[int]]]:
 
 
 def convert_records2steps(records: List[List[List[int]]]) -> List[Struct]:
+    '''Convert game record objects to step objects of kaggle environment.
+    '''
     steps = []
     actions = ('NORTH', 'EAST', 'SOUTH', 'WEST')
     moves = ['NORTH', 'NORTH', 'NORTH', 'NORTH']
@@ -80,6 +85,8 @@ def convert_records2steps(records: List[List[List[int]]]) -> List[Struct]:
 
 
 def convert_state2result(state: Struct) -> List[int]:
+    '''Convert state objects of kaggle environment to places of the game.
+    '''
     places = [[-1, i, s['reward']] for i, s in enumerate(state)]
     places.sort(key=lambda x: -x[2])
     places = [[p, i, r] for p, (_, i, r) in enumerate(places)]
@@ -94,7 +101,7 @@ def convert_state2result(state: Struct) -> List[int]:
 
 
 parser = argparse.ArgumentParser(
-    description='View a record',
+    description='Show a game record',
     formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('record', type=str, help='Record file name.')
 parser.add_argument('index', type=int, help='Index number of record.')
