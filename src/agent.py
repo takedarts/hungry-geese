@@ -14,7 +14,9 @@ from config import INPUT_AREA_SIZE, INPUT_CHANNELS, MAX_SEARCH
 from config import EAST, INVALID, NORTH, SOUTH, WEST
 
 '''
-field data:
+World class contains following attributes:
+
+field:
 [00] player1 head
 [01] player1 tail1
 [02] player1 tail2
@@ -31,7 +33,7 @@ field data:
 [13-51] repeat for each player
 [52] food
 
-input data:
+input:
 [00] my head
 [01] my tail 1
 [02] my tail 2
@@ -131,7 +133,7 @@ input data:
 [96] remaining players [3]
 [97] remaining players [4]
 
-ouptut data:
+ouptut:
 [00] move left
 [01] move straight
 [02] move right
@@ -151,13 +153,6 @@ moves: [NORTH, EAST, SOUTH, WEST]
 [08] enabled
 [09] policy (for puct or zero)
 [10] expanded (1: not expanded, 0: expanded)
-
-extra:
-[00] minimum extra growth (player 1)
-[01] minimum extra growth (player 2)
-[02] minimum extra growth (player 3)
-[03] minimum extra growth (player 4)
-[04] maximum extra growth
 '''
 
 LOGGER = logging.getLogger(__name__)
