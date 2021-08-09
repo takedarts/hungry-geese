@@ -3,9 +3,9 @@
 This is an implementation of the 5th place solution of Hungry Geese Competition in Kaggle.
 The details of the solution is described in Kaggle Discussion.
 
-Main programs are in following files:
-- `src/agent.py`: program of goose agents
-- `src/model.py`: program of CNN models
+Main program codes are in following files:
+- `src/agent.py`: program code of goose agents
+- `src/model.py`: program code of CNN models
 
 ## Requirements
 This implementation uses following libraries:
