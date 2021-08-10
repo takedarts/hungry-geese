@@ -1,7 +1,7 @@
 # The 5th place solution of Hungry Geese Competition in Kaggle.
 
 This is an implementation of the 5th place solution of Hungry Geese Competition in Kaggle.
-The details of the solution is described in Kaggle Discussion.
+The details of the solution is described in [Kaggle Discussion](https://www.kaggle.com/c/hungry-geese/discussion/263702).
 
 Main program codes are in following files:
 - `src/agent.py`: program code of goose agents
