@@ -1,4 +1,4 @@
-# The ?th place solution of Hungry Geese Competition in Kaggle.
+# The 5th place solution of Hungry Geese Competition in Kaggle.
 
 This is an implementation of the 5th place solution of Hungry Geese Competition in Kaggle.
 The details of the solution is described in Kaggle Discussion.
